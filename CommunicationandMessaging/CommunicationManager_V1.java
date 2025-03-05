@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 class Message {
     private final String content;
@@ -13,10 +10,11 @@ class Message {
         this.sender = sender;
         this.recipient = recipient;
     }
-    // Getters for message properties
+
     public String getContent() {
         return content;
     }
+
     public String getSender() {
         return sender;
     }
@@ -24,7 +22,8 @@ class Message {
     public String getRecipient() {
         return recipient;
     }
-	public void display() {
+
+    public void display() {
         System.out.println("From: " + sender);
         System.out.println("To: " + recipient);
         System.out.println("Message: " + content);
@@ -38,38 +37,61 @@ class Message {
 
 class MessagingService {
     private final Map<String, List<Message>> inbox;
+    private static final String ERROR_EMPTY_MESSAGE = "Invalid message! Content cannot be empty.";
+    private static final String ERROR_EMPTY_SENDER = "Invalid message! Sender cannot be empty.";
+    private static final String ERROR_EMPTY_RECIPIENT = "Invalid message! Recipient cannot be empty.";
+    private static final String INFO_INBOX_EMPTY = "Inbox is empty.";
+    private static final String INFO_NO_MESSAGES = "No messages found for: ";
 
     public MessagingService() {
         this.inbox = new HashMap<>();
     }
+
+    private boolean isValidMessage(String content, String sender, String recipient) {
+        if (content == null || content.trim().isEmpty()) {
+            System.out.println(ERROR_EMPTY_MESSAGE);
+            return false;
+        }
+        if (sender == null || sender.trim().isEmpty()) {
+            System.out.println(ERROR_EMPTY_SENDER);
+            return false;
+        }
+        if (recipient == null || recipient.trim().isEmpty()) {
+            System.out.println(ERROR_EMPTY_RECIPIENT);
+            return false;
+        }
+        return true;
+    }
+
     public void sendMessage(String content, String sender, String recipient) {
-        if (content == null || content.trim().isEmpty() ||
-            sender == null || sender.trim().isEmpty() ||
-            recipient == null || recipient.trim().isEmpty()) {
-            System.out.println("Invalid message! Content, sender, and recipient must not be empty.");
+        if (!isValidMessage(content, sender, recipient)) {
             return;
         }
         Message message = new Message(content, sender, recipient);
-        inbox.computeIfAbsent(message.getRecipient(), k -> new ArrayList<>()).add(message);
+        inbox.computeIfAbsent(recipient, k -> new ArrayList<>()).add(message);
     }
 
     public List<Message> getMessagesForRecipient(String recipient) {
-        List<Message> messages = inbox.getOrDefault(recipient, new ArrayList<>());
+        List<Message> messages = inbox.getOrDefault(recipient, Collections.emptyList());
         if (messages.isEmpty()) {
-            System.out.println("No messages found for: " + recipient);
+            System.out.println(INFO_NO_MESSAGES + recipient);
         }
         return messages;
     }
 
     public void printAllMessages() {
         if (inbox.isEmpty()) {
-            System.out.println("Inbox is empty.");
+            System.out.println(INFO_INBOX_EMPTY);
             return;
         }
-        for (List<Message> messages : inbox.values()) {
-            for (Message message : messages) {
+        for (String recipient : inbox.keySet()) {
+            System.out.println("\nMessages for: " + recipient);
+            System.out.println("------------------------");
+            for (Message message : inbox.get(recipient)) {
                 message.display();
             }
+            System.out.println("------------------------");
         }
     }
 }
+
